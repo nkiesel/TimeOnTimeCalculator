@@ -137,6 +137,18 @@ fun TimePicker(
     showSeconds: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    // Track the current values internally to ensure only changed values are updated
+    var currentHour by remember { mutableStateOf(hour) }
+    var currentMinute by remember { mutableStateOf(minute) }
+    var currentSecond by remember { mutableStateOf(second) }
+
+    // Update internal state when props change
+    LaunchedEffect(hour, minute, second) {
+        currentHour = hour
+        currentMinute = minute
+        currentSecond = second
+    }
+
     val hours = (0..23).toList()
     val minutes = (0..59).toList()
     val seconds = (0..59).toList()
@@ -149,9 +161,10 @@ fun TimePicker(
         // Hour picker
         WheelPicker(
             items = hours,
-            selectedIndex = hour,
+            selectedIndex = currentHour,
             onSelectedIndexChange = { newHour ->
-                onTimeChanged(newHour, minute, second)
+                currentHour = newHour
+                onTimeChanged(newHour, currentMinute, currentSecond)
             },
             modifier = Modifier.weight(1f),
             itemContent = { item, isSelected ->
@@ -173,9 +186,10 @@ fun TimePicker(
         // Minute picker
         WheelPicker(
             items = minutes,
-            selectedIndex = minute,
+            selectedIndex = currentMinute,
             onSelectedIndexChange = { newMinute ->
-                onTimeChanged(hour, newMinute, second)
+                currentMinute = newMinute
+                onTimeChanged(currentHour, newMinute, currentSecond)
             },
             modifier = Modifier.weight(1f),
             itemContent = { item, isSelected ->
@@ -198,9 +212,10 @@ fun TimePicker(
             // Seconds picker
             WheelPicker(
                 items = seconds,
-                selectedIndex = second,
+                selectedIndex = currentSecond,
                 onSelectedIndexChange = { newSecond ->
-                    onTimeChanged(hour, minute, newSecond)
+                    currentSecond = newSecond
+                    onTimeChanged(currentHour, currentMinute, newSecond)
                 },
                 modifier = Modifier.weight(1f),
                 itemContent = { item, isSelected ->
