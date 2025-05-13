@@ -13,6 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.nkiesel.components.RatingPicker
 import org.nkiesel.components.TimePicker
@@ -69,6 +73,29 @@ fun App() {
                         raceData = raceData.copy(boat2 = newBoatData)
                     },
                     modifier = Modifier.weight(1f)
+                )
+            }
+
+            // Finished Now button
+            Button(
+                onClick = {
+                    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                    val currentTime = RaceTime(now.hour, now.minute, now.second)
+
+                    // Update boat 1's finish time
+                    val newBoat1 = raceData.boat1.copy(finishTime = currentTime)
+                    raceData = raceData.copy(boat1 = newBoat1)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50)) // Green
+            ) {
+                Text(
+                    text = "Finished Now",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
 
