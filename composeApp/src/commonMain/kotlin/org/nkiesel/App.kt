@@ -14,7 +14,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -42,14 +41,16 @@ fun App() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Spacer(modifier = Modifier.height(48.dp))
             Text(
-                text = "Sailboat Race Time Calculator",
+                text = "Time-on-Time Calculator",
                 style = MaterialTheme.typography.h6,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.height(36.dp))
             // Boats side by side
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -136,6 +137,17 @@ fun BoatCard(
                 fontWeight = FontWeight.Bold
             )
 
+            // Rating
+            RatingPicker(
+                rating = boatData.rating,
+                onRatingChanged = { newRating ->
+                    onBoatDataChanged(boatData.copy(rating = newRating))
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            )
+
             // Start Time - never show seconds
             TimePickerSection(
                 title = "Start Time",
@@ -156,17 +168,6 @@ fun BoatCard(
                 },
                 showSeconds = true,
                 modifier = Modifier.fillMaxWidth()
-            )
-
-            // Rating
-            RatingPicker(
-                rating = boatData.rating,
-                onRatingChanged = { newRating ->
-                    onBoatDataChanged(boatData.copy(rating = newRating))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
             )
 
             // Times
