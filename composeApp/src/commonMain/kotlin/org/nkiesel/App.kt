@@ -58,7 +58,7 @@ fun App() {
             ) {
                 // Boat 1
                 BoatCard(
-                    title = "Boat 1",
+                    title = "My Boat",
                     boatData = raceData.boat1,
                     onBoatDataChanged = { newBoatData ->
                         raceData = raceData.copy(boat1 = newBoatData)
@@ -68,7 +68,7 @@ fun App() {
 
                 // Boat 2
                 BoatCard(
-                    title = "Boat 2",
+                    title = "Competitor",
                     boatData = raceData.boat2,
                     onBoatDataChanged = { newBoatData ->
                         raceData = raceData.copy(boat2 = newBoatData)
