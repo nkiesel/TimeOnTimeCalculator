@@ -346,8 +346,8 @@ fun ResultsCard(
 
                 Text(
                     text = when (winner) {
-                        1 -> "Boat 1"
-                        2 -> "Boat 2"
+                        1 -> "My Boat"
+                        2 -> "Competitor"
                         else -> "Tie"
                     },
                     style = MaterialTheme.typography.h6,
@@ -413,7 +413,7 @@ fun ResultsCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val indicator = if (winner == 1) "▲" else "▼"
-                    val text = if (winner == 1) "Boat 1 wins by" else "Boat 2 wins by"
+                    val text = if (winner == 1) "My Boat wins by" else "Competitor wins by"
 
                     Text(
                         text = indicator,
