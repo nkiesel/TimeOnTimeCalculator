@@ -31,6 +31,7 @@ fun <T> WheelPicker(
     onSelectedIndexChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     visibleItemsCount: Int = 1,
+    isFrozen: Boolean = false,
     itemContent: @Composable (item: T, isSelected: Boolean) -> Unit = { item, isSelected ->
         DefaultWheelPickerItem(item = item, isSelected = isSelected)
     }
@@ -60,25 +61,28 @@ fun <T> WheelPicker(
     Box(
         modifier = modifier
             .height(48.dp * visibleItemsCount)
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { isDragging = true },
-                    onDragEnd = {
-                        isDragging = false
-                        scrollState = scrollState.roundToInt().toFloat()
-                        onSelectedIndexChange(scrollState.roundToInt().coerceIn(0, items.size - 1))
-                    },
-                    onDragCancel = {
-                        isDragging = false
-                        scrollState = scrollState.roundToInt().toFloat()
+            .pointerInput(isFrozen) {
+                if (!isFrozen) {
+                    detectDragGestures(
+                        onDragStart = { isDragging = true },
+                        onDragEnd = {
+                            isDragging = false
+                            scrollState = scrollState.roundToInt().toFloat()
+                            onSelectedIndexChange(scrollState.roundToInt().coerceIn(0, items.size - 1))
+                        },
+                        onDragCancel = {
+                            isDragging = false
+                            scrollState = scrollState.roundToInt().toFloat()
+                        }
+                    ) { change, dragAmount ->
+                        change.consume()
+                        // Convert vertical drag to scroll change (negative because dragging down should increase the value)
+                        val delta = -dragAmount.y / 48f
+                        scrollState = (scrollState + delta).coerceIn(0f, (items.size - 1).toFloat())
                     }
-                ) { change, dragAmount ->
-                    change.consume()
-                    // Convert vertical drag to scroll change (negative because dragging down should increase the value)
-                    val delta = -dragAmount.y / 48f
-                    scrollState = (scrollState + delta).coerceIn(0f, (items.size - 1).toFloat())
                 }
-            },
+            }
+            .alpha(if (isFrozen) 0.6f else 1f),
         contentAlignment = Alignment.Center
     ) {
         // Display visible items
@@ -135,7 +139,8 @@ fun TimePicker(
     second: Int = 0,
     onTimeChanged: (hour: Int, minute: Int, second: Int) -> Unit,
     showSeconds: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isFrozen: Boolean = false
 ) {
     // Track the current values internally to ensure only changed values are updated
     var currentHour by remember { mutableStateOf(hour) }
@@ -167,6 +172,7 @@ fun TimePicker(
                 onTimeChanged(newHour, currentMinute, currentSecond)
             },
             modifier = Modifier.weight(1f),
+            isFrozen = isFrozen,
             itemContent = { item, isSelected ->
                 Text(
                     text = item.toString().padStart(2, '0'),
@@ -192,6 +198,7 @@ fun TimePicker(
                 onTimeChanged(currentHour, newMinute, currentSecond)
             },
             modifier = Modifier.weight(1f),
+            isFrozen = isFrozen,
             itemContent = { item, isSelected ->
                 Text(
                     text = item.toString().padStart(2, '0'),
@@ -218,6 +225,7 @@ fun TimePicker(
                     onTimeChanged(currentHour, currentMinute, newSecond)
                 },
                 modifier = Modifier.weight(1f),
+                isFrozen = isFrozen,
                 itemContent = { item, isSelected ->
                     Text(
                         text = item.toString().padStart(2, '0'),

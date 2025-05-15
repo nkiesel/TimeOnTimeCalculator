@@ -9,6 +9,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -32,6 +33,33 @@ fun App() {
 
     MaterialTheme {
         var raceData by remember { mutableStateOf(RaceComparisonData()) }
+        var isFrozen by remember { mutableStateOf(false) }
+        var showUnfreezeDialog by remember { mutableStateOf(false) }
+
+        if (showUnfreezeDialog) {
+            AlertDialog(
+                onDismissRequest = { showUnfreezeDialog = false },
+                title = { Text("Confirm Unfreeze") },
+                text = { Text("Are you sure you want to unfreeze the application? This will allow changes to boat ratings and times.") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            isFrozen = false
+                            showUnfreezeDialog = false
+                        }
+                    ) {
+                        Text("Unfreeze")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = { showUnfreezeDialog = false }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -63,7 +91,8 @@ fun App() {
                     onBoatDataChanged = { newBoatData ->
                         raceData = raceData.copy(boat1 = newBoatData)
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    isFrozen = isFrozen
                 )
 
                 // Boat 2
@@ -73,27 +102,31 @@ fun App() {
                     onBoatDataChanged = { newBoatData ->
                         raceData = raceData.copy(boat2 = newBoatData)
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    isFrozen = isFrozen
                 )
             }
 
             // Finished Now button
             Button(
                 onClick = {
-                    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-                    val currentTime = RaceTime(now.hour, now.minute, now.second)
+                    if (!isFrozen) {
+                        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                        val currentTime = RaceTime(now.hour, now.minute, now.second)
 
-                    // Update boat 1's finish time
-                    val newBoat1 = raceData.boat1.copy(finishTime = currentTime)
-                    raceData = raceData.copy(boat1 = newBoat1)
+                        // Update boat 1's finish time
+                        val newBoat1 = raceData.boat1.copy(finishTime = currentTime)
+                        raceData = raceData.copy(boat1 = newBoat1)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50)) // Green
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50)), // Green
+                enabled = !isFrozen
             ) {
                 Text(
-                    text = "Finished Now",
+                    text = "My Boat Finished Now",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -106,8 +139,33 @@ fun App() {
                 modifier = Modifier.fillMaxWidth(),
                 onRaceDataChanged = { newRaceData ->
                     raceData = newRaceData
-                }
+                },
+                isFrozen = isFrozen
             )
+
+            // Freeze button
+            Button(
+                onClick = {
+                    if (isFrozen) {
+                        showUnfreezeDialog = true
+                    } else {
+                        isFrozen = true
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = if (isFrozen) Color(0xFFFF5722) else Color(0xFF2196F3)
+                )
+            ) {
+                Text(
+                    text = if (isFrozen) "Unfreeze Application" else "Freeze Application",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
         }
     }
 }
@@ -117,7 +175,8 @@ fun BoatCard(
     title: String,
     boatData: BoatData,
     onBoatDataChanged: (BoatData) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isFrozen: Boolean = false
 ) {
     Card(
         modifier = modifier,
@@ -141,11 +200,14 @@ fun BoatCard(
             RatingPicker(
                 rating = boatData.rating,
                 onRatingChanged = { newRating ->
-                    onBoatDataChanged(boatData.copy(rating = newRating))
+                    if (!isFrozen) {
+                        onBoatDataChanged(boatData.copy(rating = newRating))
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
+                    .alpha(if (isFrozen) 0.6f else 1f)
             )
 
             // Start Time - never show seconds
@@ -153,10 +215,13 @@ fun BoatCard(
                 title = "Start Time",
                 time = boatData.startTime,
                 onTimeChanged = { newTime ->
-                    onBoatDataChanged(boatData.copy(startTime = newTime))
+                    if (!isFrozen) {
+                        onBoatDataChanged(boatData.copy(startTime = newTime))
+                    }
                 },
                 showSeconds = false,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isFrozen = isFrozen
             )
 
             // Finish Time - show seconds
@@ -164,10 +229,13 @@ fun BoatCard(
                 title = "Finish Time",
                 time = boatData.finishTime,
                 onTimeChanged = { newTime ->
-                    onBoatDataChanged(boatData.copy(finishTime = newTime))
+                    if (!isFrozen) {
+                        onBoatDataChanged(boatData.copy(finishTime = newTime))
+                    }
                 },
                 showSeconds = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isFrozen = isFrozen
             )
 
             // Times
@@ -203,7 +271,8 @@ fun TimePickerSection(
     time: RaceTime,
     onTimeChanged: (RaceTime) -> Unit,
     showSeconds: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isFrozen: Boolean = false
 ) {
     Column(
         modifier = modifier,
@@ -225,7 +294,8 @@ fun TimePickerSection(
                 onTimeChanged(RaceTime(hour, minute, actualSecond))
             },
             showSeconds = showSeconds,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isFrozen = isFrozen
         )
     }
 }
@@ -234,7 +304,8 @@ fun TimePickerSection(
 fun ResultsCard(
     raceData: RaceComparisonData,
     modifier: Modifier = Modifier,
-    onRaceDataChanged: (RaceComparisonData) -> Unit = {}
+    onRaceDataChanged: (RaceComparisonData) -> Unit = {},
+    isFrozen: Boolean = false
 ) {
     var currentRaceData by remember { mutableStateOf(raceData) }
 
@@ -307,16 +378,19 @@ fun ResultsCard(
             // Button to equalize corrected times
             Button(
                 onClick = {
-                    val equalFinishTime = currentRaceData.calculateEqualFinishTimeForBoat2()
-                    val newBoat2 = currentRaceData.boat2.copy(finishTime = equalFinishTime)
-                    val newRaceData = currentRaceData.copy(boat2 = newBoat2)
-                    currentRaceData = newRaceData
-                    onRaceDataChanged(newRaceData)
+                    if (!isFrozen) {
+                        val equalFinishTime = currentRaceData.calculateEqualFinishTimeForBoat2()
+                        val newBoat2 = currentRaceData.boat2.copy(finishTime = equalFinishTime)
+                        val newRaceData = currentRaceData.copy(boat2 = newBoat2)
+                        currentRaceData = newRaceData
+                        onRaceDataChanged(newRaceData)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF9C27B0)) // Purple
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF9C27B0)), // Purple
+                enabled = !isFrozen
             ) {
                 Text(
                     text = "Equalize Corrected Times",
