@@ -154,9 +154,12 @@ fun TimePicker(
         currentSecond = second
     }
 
-    val hours = (0..23).toList()
-    val minutes = (0..59).toList()
-    val seconds = (0..59).toList()
+    @Composable
+    fun colon() = Text(
+        text = ":",
+        style = MaterialTheme.typography.h6,
+        modifier = Modifier.padding(horizontal = 4.dp)
+    )
 
     Row(
         modifier = modifier,
@@ -165,7 +168,7 @@ fun TimePicker(
     ) {
         // Hour picker
         WheelPicker(
-            items = hours,
+            items = (0..23).toList(),
             selectedIndex = currentHour,
             onSelectedIndexChange = { newHour ->
                 currentHour = newHour
@@ -183,15 +186,11 @@ fun TimePicker(
             }
         )
 
-        Text(
-            text = ":",
-            style = MaterialTheme.typography.h6,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
+        colon()
 
         // Minute picker
         WheelPicker(
-            items = minutes,
+            items = (0..59).toList(),
             selectedIndex = currentMinute,
             onSelectedIndexChange = { newMinute ->
                 currentMinute = newMinute
@@ -210,15 +209,11 @@ fun TimePicker(
         )
 
         if (showSeconds) {
-            Text(
-                text = ":",
-                style = MaterialTheme.typography.h6,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
+            colon()
 
             // Seconds picker
             WheelPicker(
-                items = seconds,
+                items = (0..59).toList(),
                 selectedIndex = currentSecond,
                 onSelectedIndexChange = { newSecond ->
                     currentSecond = newSecond
@@ -251,7 +246,7 @@ fun TimePicker(
 fun RatingPicker(
     rating: Int,
     onRatingChanged: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier
 ) {
     // Generate ratings from -200 to 400 with step 3
     val ratings = (-67..133).map { it * 3 }

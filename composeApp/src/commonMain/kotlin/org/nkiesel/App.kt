@@ -175,8 +175,8 @@ fun BoatCard(
     title: String,
     boatData: BoatData,
     onBoatDataChanged: (BoatData) -> Unit,
-    modifier: Modifier = Modifier,
-    isFrozen: Boolean = false
+    modifier: Modifier,
+    isFrozen: Boolean
 ) {
     Card(
         modifier = modifier,
@@ -270,9 +270,9 @@ fun TimePickerSection(
     title: String,
     time: RaceTime,
     onTimeChanged: (RaceTime) -> Unit,
-    showSeconds: Boolean = false,
-    modifier: Modifier = Modifier,
-    isFrozen: Boolean = false
+    showSeconds: Boolean,
+    modifier: Modifier,
+    isFrozen: Boolean,
 ) {
     Column(
         modifier = modifier,
@@ -285,13 +285,11 @@ fun TimePickerSection(
         )
 
         TimePicker(
-            hour = time.hour,
-            minute = time.minute,
-            second = time.second,
+            hour = time.hours,
+            minute = time.minutes,
+            second = time.seconds,
             onTimeChanged = { hour, minute, second ->
-                // For start time, always use 0 seconds regardless of what was selected
-                val actualSecond = if (title.contains("Start", ignoreCase = true)) 0 else second
-                onTimeChanged(RaceTime(hour, minute, actualSecond))
+                onTimeChanged(RaceTime(hour, minute, if (showSeconds) second else 0))
             },
             showSeconds = showSeconds,
             modifier = Modifier.fillMaxWidth(),
@@ -304,8 +302,8 @@ fun TimePickerSection(
 fun ResultsCard(
     raceData: RaceComparisonData,
     modifier: Modifier = Modifier,
-    onRaceDataChanged: (RaceComparisonData) -> Unit = {},
-    isFrozen: Boolean = false
+    onRaceDataChanged: (RaceComparisonData) -> Unit,
+    isFrozen: Boolean,
 ) {
     var currentRaceData by remember { mutableStateOf(raceData) }
 
@@ -412,11 +410,8 @@ fun ResultsCard(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val indicator = if (winner == 1) "▲" else "▼"
-                    val text = if (winner == 1) "My Boat wins by" else "Competitor wins by"
-
                     Text(
-                        text = indicator,
+                        text = if (winner == 1) "▲" else "▼",
                         style = MaterialTheme.typography.h6,
                         color = winnerColor,
                         fontWeight = FontWeight.Bold
@@ -424,8 +419,10 @@ fun ResultsCard(
 
                     Spacer(modifier = Modifier.width(4.dp))
 
+                    val text = if (winner == 1) "My Boat" else "Competitor"
+
                     Text(
-                        text = "$text ${raceData.timeDifferenceFormatted()}",
+                        text = "$text wins by ${raceData.timeDifferenceFormatted()}",
                         style = MaterialTheme.typography.body1,
                         color = winnerColor,
                         fontWeight = FontWeight.Bold

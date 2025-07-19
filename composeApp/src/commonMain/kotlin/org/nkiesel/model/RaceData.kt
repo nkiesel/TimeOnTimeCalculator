@@ -9,27 +9,23 @@ import kotlin.math.roundToInt
  */
 @Immutable
 data class RaceTime(
-    val hour: Int,
-    val minute: Int,
-    val second: Int = 0
+    val hours: Int,
+    val minutes: Int,
+    val seconds: Int = 0
 ) {
-    override fun toString(): String {
-        return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
-    }
+    fun Int.pad(): String = toString().padStart(2, '0')
+
+    override fun toString(): String = "${hours.pad()}:${minutes.pad()}"
 
     /**
      * Returns a string representation including seconds
      */
-    fun toStringWithSeconds(): String {
-        return "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${
-            second.toString().padStart(2, '0')
-        }"
-    }
+    fun toStringWithSeconds(): String = "${hours.pad()}:${minutes.pad()}:${seconds.pad()}"
 
     /**
      * Converts time to seconds since midnight
      */
-    fun toSeconds(): Int = hour * 3600 + minute * 60 + second
+    fun toSeconds(): Int = hours * 3600 + minutes * 60 + seconds
 
     companion object {
         /**
@@ -58,15 +54,12 @@ data class BoatData(
      * Handles cases where finish time is earlier than start time (race spans midnight)
      */
     fun elapsedTimeSeconds(): Int {
-        val startSeconds = startTime.toSeconds()
-        val finishSeconds = finishTime.toSeconds()
-
-        // If finish time is earlier than start time, assume race spans midnight
-        return if (finishSeconds < startSeconds) {
-            // Add 24 hours (86400 seconds) to finish time
-            finishSeconds + 86400 - startSeconds
+        val elapsed = finishTime.toSeconds() - startTime.toSeconds()
+        return if (elapsed < 0) {
+            // If finish time is earlier than start time, assume race spans midnight
+            elapsed + 86400
         } else {
-            finishSeconds - startSeconds
+            elapsed
         }
     }
 
@@ -75,9 +68,8 @@ data class BoatData(
      * using the formula: 650 / (550 + rating) * elapsed time in seconds
      */
     fun correctedTimeSeconds(): Int {
-        val elapsedSeconds = elapsedTimeSeconds()
         // Apply the specified rating correction formula
-        return (650.0 / (550.0 + rating) * elapsedSeconds).roundToInt()
+        return (650.0 / (550.0 + rating) * elapsedTimeSeconds()).roundToInt()
     }
 
     /**
@@ -156,15 +148,10 @@ data class RaceComparisonData(
         val targetElapsedSeconds = (boat2Factor / boat1Factor * boat1ElapsedSeconds).roundToInt()
 
         // Calculate the new finish time based on the target elapsed time in seconds
-        val startSeconds = boat2.startTime.toSeconds()
-        val newFinishSeconds = startSeconds + targetElapsedSeconds
+        val newFinishSeconds = boat2.startTime.toSeconds() + targetElapsedSeconds
 
         // Handle case where the new finish time would be on the next day
-        val adjustedFinishSeconds = if (newFinishSeconds >= 86400) {
-            newFinishSeconds - 86400
-        } else {
-            newFinishSeconds
-        }
+        val adjustedFinishSeconds = if (newFinishSeconds >= 86400) newFinishSeconds - 86400 else newFinishSeconds
 
         return RaceTime.fromSeconds(adjustedFinishSeconds)
     }
