@@ -9,7 +9,7 @@ plugins {
 }
 
 kotlin {
-        androidLibrary {
+        android {
             namespace = "org.nkiesel.shared"
             compileSdk = 36
         }
@@ -27,12 +27,12 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.composeMpRuntime)
+            implementation(libs.composeMpFoundation)
+            implementation(libs.composeMpMaterial)
+            implementation(libs.composeMpUi)
+            implementation(libs.composeMpComponentsResources)
+            implementation(libs.composeMpComponentsUiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.kotlinx.datetime)
