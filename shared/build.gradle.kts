@@ -12,6 +12,10 @@ kotlin {
         android {
             namespace = "org.nkiesel.shared"
             compileSdk = 36
+            @OptIn(ExperimentalKotlinGradlePluginApi::class)
+            compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_17)
+            }
         }
 
     listOf(
