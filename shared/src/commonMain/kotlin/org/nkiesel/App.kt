@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -23,7 +23,10 @@ import org.nkiesel.components.TimePicker
 import org.nkiesel.model.BoatData
 import org.nkiesel.model.RaceComparisonData
 import org.nkiesel.model.RaceTime
+import org.nkiesel.service.JibesetService
+import org.nkiesel.service.JibesetBoat
 import org.nkiesel.test.testElapsedTimeCalculation
+import kotlinx.coroutines.launch
 
 @Composable
 @Preview
@@ -35,6 +38,10 @@ fun App() {
         var raceData by remember { mutableStateOf(RaceComparisonData()) }
         var isFrozen by remember { mutableStateOf(false) }
         var showUnfreezeDialog by remember { mutableStateOf(false) }
+        
+        val jibesetService = remember { JibesetService() }
+        var allBoats by remember { mutableStateOf(emptyList<JibesetBoat>()) }
+        val scope = rememberCoroutineScope()
 
         if (showUnfreezeDialog) {
             AlertDialog(
@@ -78,7 +85,27 @@ fun App() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(36.dp))
+            // Jibeset Integration Section
+            JibesetSection(
+                raceData = raceData,
+                onRaceDataChanged = { raceData = it },
+                allBoats = allBoats,
+                onLoadBoats = { url ->
+                    scope.launch {
+                        allBoats = jibesetService.fetchBoats(url)
+                        // Auto-detect my boat if possible
+                        val myBoat = allBoats.find { it.name.equals(raceData.myBoatNameProfile, ignoreCase = true) }
+                        if (myBoat != null) {
+                            raceData = raceData.copy(
+                                boat1 = raceData.boat1.copy(name = myBoat.name, rating = myBoat.rating)
+                            )
+                        }
+                    }
+                },
+                isFrozen = isFrozen
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
             // Boats side by side
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -86,7 +113,7 @@ fun App() {
             ) {
                 // Boat 1
                 BoatCard(
-                    title = "My Boat",
+                    title = raceData.boat1.name,
                     boatData = raceData.boat1,
                     onBoatDataChanged = { newBoatData ->
                         raceData = raceData.copy(boat1 = newBoatData)
@@ -97,7 +124,7 @@ fun App() {
 
                 // Boat 2
                 BoatCard(
-                    title = "Competitor",
+                    title = raceData.boat2.name,
                     boatData = raceData.boat2,
                     onBoatDataChanged = { newBoatData ->
                         raceData = raceData.copy(boat2 = newBoatData)
@@ -114,7 +141,7 @@ fun App() {
                         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                         val currentTime = RaceTime(now.hour, now.minute, now.second)
 
-                        // Update boat 1's finish time
+                        // Update boat 1s finish time
                         val newBoat1 = raceData.boat1.copy(finishTime = currentTime)
                         raceData = raceData.copy(boat1 = newBoat1)
                     }
@@ -171,6 +198,118 @@ fun App() {
 }
 
 @Composable
+fun JibesetSection(
+    raceData: RaceComparisonData,
+    onRaceDataChanged: (RaceComparisonData) -> Unit,
+    allBoats: List<JibesetBoat>,
+    onLoadBoats: (String) -> Unit,
+    isFrozen: Boolean
+) {
+    var url by remember { mutableStateOf(raceData.jibesetUrl) }
+    var myBoatName by remember { mutableStateOf(raceData.myBoatNameProfile) }
+    var expandedMyBoat by remember { mutableStateOf(false) }
+    var expandedCompetitor by remember { mutableStateOf(false) }
+
+    val myJibesetBoat = allBoats.find { it.name.equals(myBoatName, ignoreCase = true) }
+    val myFleet = myJibesetBoat?.fleet
+    val fleetBoats = if (myFleet != null) allBoats.filter { it.fleet == myFleet && !it.name.equals(myBoatName, ignoreCase = true) } else emptyList()
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        elevation = 4.dp,
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Jibeset Integration", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            
+            TextField(
+                value = myBoatName,
+                onValueChange = { 
+                    myBoatName = it
+                    onRaceDataChanged(raceData.copy(myBoatNameProfile = it))
+                },
+                label = { Text("My Boat Name (Profile)") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isFrozen
+            )
+
+            TextField(
+                value = url,
+                onValueChange = { 
+                    url = it
+                    onRaceDataChanged(raceData.copy(jibesetUrl = it))
+                },
+                label = { Text("Jibeset Fleets/Flags URL") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isFrozen
+            )
+            
+            Button(
+                onClick = { onLoadBoats(url) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isFrozen && url.isNotEmpty()
+            ) {
+                Text("Load Race Info")
+            }
+
+            if (allBoats.isNotEmpty()) {
+                Divider()
+                
+                Text("Select Boats from Jibeset:", style = MaterialTheme.typography.body2, fontWeight = FontWeight.Bold)
+                
+                Box {
+                    OutlinedButton(
+                        onClick = { expandedMyBoat = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isFrozen
+                    ) {
+                        Text(if (myJibesetBoat != null) "My Boat: ${myJibesetBoat.name} (${myJibesetBoat.rating})" else "Select My Boat")
+                    }
+                    DropdownMenu(expanded = expandedMyBoat, onDismissRequest = { expandedMyBoat = false }) {
+                        allBoats.forEach { boat ->
+                            DropdownMenuItem(onClick = {
+                                expandedMyBoat = false
+                                myBoatName = boat.name
+                                val newBoat1 = raceData.boat1.copy(name = boat.name, rating = boat.rating)
+                                onRaceDataChanged(raceData.copy(boat1 = newBoat1, myBoatNameProfile = boat.name))
+                            }) {
+                                Text("${boat.name} (${boat.rating}) - ${boat.fleet}")
+                            }
+                        }
+                    }
+                }
+
+                if (myFleet != null) {
+                    Text("My Fleet: $myFleet", style = MaterialTheme.typography.body2, color = Color.Gray)
+                    
+                    Box {
+                        OutlinedButton(
+                            onClick = { expandedCompetitor = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isFrozen && fleetBoats.isNotEmpty()
+                        ) {
+                            val competitor = raceData.boat2
+                            Text(if (competitor.name != "Competitor") "Competitor: ${competitor.name} (${competitor.rating})" else "Select Competitor from Fleet")
+                        }
+                        DropdownMenu(expanded = expandedCompetitor, onDismissRequest = { expandedCompetitor = false }) {
+                            fleetBoats.forEach { boat ->
+                                DropdownMenuItem(onClick = {
+                                    expandedCompetitor = false
+                                    val newBoat2 = raceData.boat2.copy(name = boat.name, rating = boat.rating)
+                                    onRaceDataChanged(raceData.copy(boat2 = newBoat2))
+                                }) {
+                                    Text("${boat.name} (${boat.rating})")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun BoatCard(
     title: String,
     boatData: BoatData,
@@ -193,7 +332,8 @@ fun BoatCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.h6,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
 
             // Rating
@@ -344,8 +484,8 @@ fun ResultsCard(
 
                 Text(
                     text = when (winner) {
-                        1 -> "My Boat"
-                        2 -> "Competitor"
+                        1 -> currentRaceData.boat1.name
+                        2 -> currentRaceData.boat2.name
                         else -> "Tie"
                     },
                     style = MaterialTheme.typography.h6,
@@ -419,7 +559,7 @@ fun ResultsCard(
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    val text = if (winner == 1) "My Boat" else "Competitor"
+                    val text = if (winner == 1) currentRaceData.boat1.name else currentRaceData.boat2.name
 
                     Text(
                         text = "$text wins by ${raceData.timeDifferenceFormatted()}",

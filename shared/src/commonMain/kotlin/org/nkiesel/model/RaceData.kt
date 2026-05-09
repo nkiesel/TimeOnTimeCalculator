@@ -13,7 +13,7 @@ data class RaceTime(
     val minutes: Int,
     val seconds: Int = 0
 ) {
-    fun Int.pad(): String = toString().padStart(2, '0')
+    private fun Int.pad(): String = if (this < 10) "0$this" else toString()
 
     override fun toString(): String = "${hours.pad()}:${minutes.pad()}"
 
@@ -45,6 +45,7 @@ data class RaceTime(
  */
 @Immutable
 data class BoatData(
+    val name: String = "",
     val startTime: RaceTime = RaceTime(10, 0),
     val finishTime: RaceTime = RaceTime(14, 0),
     val rating: Int = 0
@@ -102,8 +103,10 @@ private fun timeFormatted(seconds: Int): String {
  */
 @Immutable
 data class RaceComparisonData(
-    val boat1: BoatData = BoatData(rating = -39),
-    val boat2: BoatData = BoatData(rating = 39)
+    val boat1: BoatData = BoatData(name = "My Boat", rating = -39),
+    val boat2: BoatData = BoatData(name = "Competitor", rating = 39),
+    val jibesetUrl: String = "",
+    val myBoatNameProfile: String = ""
 ) {
     /**
      * Determines which boat won based on corrected time
