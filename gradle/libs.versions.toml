@@ -1,8 +1,11 @@
 [versions]
 agp = "9.3.1"
+# @keep
 androidCompileSdk = "37"
-androidMinSdk = "24"      # Add this line (adjust the number if needed)
-androidTargetSdk = "37"   # Add this line (adjust the number if needed)
+# @keep
+androidMinSdk = "24"
+# @keep
+androidTargetSdk = "37"
 androidx-activityCompose = "1.13.0"
 androidx-lifecycle = "2.11.0"
 compose-multiplatform = "1.11.1"
