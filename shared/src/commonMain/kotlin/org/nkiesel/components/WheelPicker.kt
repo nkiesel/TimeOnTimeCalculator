@@ -52,8 +52,9 @@ fun <T> WheelPicker(
     LaunchedEffect(scrollState) {
         if (isDragging) {
             val roundedValue = scrollState.roundToInt()
-            if (roundedValue != selectedIndex) {
-                onSelectedIndexChange(roundedValue.coerceIn(0, items.size - 1))
+            val wrappedValue = (roundedValue % items.size + items.size) % items.size
+            if (wrappedValue != selectedIndex) {
+                onSelectedIndexChange(wrappedValue)
             }
         }
     }
@@ -67,18 +68,20 @@ fun <T> WheelPicker(
                         onDragStart = { isDragging = true },
                         onDragEnd = {
                             isDragging = false
-                            scrollState = scrollState.roundToInt().toFloat()
-                            onSelectedIndexChange(scrollState.roundToInt().coerceIn(0, items.size - 1))
+                            val roundedValue = scrollState.roundToInt()
+                            val wrappedValue = (roundedValue % items.size + items.size) % items.size
+                            scrollState = roundedValue.toFloat()
+                            onSelectedIndexChange(wrappedValue)
                         },
                         onDragCancel = {
                             isDragging = false
-                            scrollState = scrollState.roundToInt().toFloat()
+                            scrollState = selectedIndex.toFloat()
                         }
                     ) { change, dragAmount ->
                         change.consume()
                         // Convert vertical drag to scroll change (negative because dragging down should increase the value)
                         val delta = -dragAmount.y / 48f
-                        scrollState = (scrollState + delta).coerceIn(0f, (items.size - 1).toFloat())
+                        scrollState = (scrollState + delta)
                     }
                 }
             }
@@ -87,26 +90,25 @@ fun <T> WheelPicker(
     ) {
         // Display visible items
         for (i in -halfVisibleItemsCount..halfVisibleItemsCount) {
-            val index = selectedIndex + i
-            if (index in 0 until items.size) {
-                val distanceFromCenter = abs(i.toFloat())
-                val scale = 1f - (distanceFromCenter * 0.15f)
-                val alpha = 1f - (distanceFromCenter * 0.3f)
+            val index = (selectedIndex + i % items.size + items.size) % items.size
+            
+            val distanceFromCenter = abs(i.toFloat())
+            val scale = 1f - (distanceFromCenter * 0.15f)
+            val alpha = 1f - (distanceFromCenter * 0.3f)
 
-                Box(
-                    modifier = Modifier
-                        .height(48.dp)
-                        .fillMaxWidth()
-                        .offset(y = (i * 48).dp)
-                        .alpha(alpha)
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    itemContent(items[index], i == 0)
-                }
+            Box(
+                modifier = Modifier
+                    .height(48.dp)
+                    .fillMaxWidth()
+                    .offset(y = (i * 48).dp)
+                    .alpha(alpha)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                itemContent(items[index], i == 0)
             }
         }
     }
