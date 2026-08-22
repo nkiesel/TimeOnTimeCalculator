@@ -19,7 +19,6 @@ kotlin {
         }
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -37,6 +36,7 @@ kotlin {
             implementation(libs.composeMpUi)
             implementation(libs.composeMpComponentsResources)
             implementation(libs.composeMpComponentsUiToolingPreview)
+            implementation(compose.preview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.kotlinx.datetime)

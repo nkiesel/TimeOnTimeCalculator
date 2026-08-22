@@ -1,36 +1,38 @@
 [versions]
-agp = "9.1.1"
-android-compileSdk = "36"
-android-minSdk = "24"
-android-targetSdk = "35"
+agp = "9.3.1"
+androidCompileSdk = "37"
+androidMinSdk = "24"      # Add this line (adjust the number if needed)
+androidTargetSdk = "37"   # Add this line (adjust the number if needed)
 androidx-activityCompose = "1.13.0"
-androidx-lifecycle = "2.10.0"
-compose-multiplatform = "1.10.3"
-kotlin = "2.3.21"
+androidx-lifecycle = "2.11.0"
+compose-multiplatform = "1.11.1"
+kotlin = "2.4.10"
 kotlinx-datetime = "0.8.0-0.6.x-compat"
-ktor = "3.1.1"
-ksoup = "0.2.2"
+ksoup = "0.2.6"
+ktor = "3.5.2"
+plugin-versionsUpdate = "1.1.1"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
-androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
-kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
-ksoup = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
-composeMpRuntime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
-composeMpFoundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-multiplatform" }
-composeMpMaterial = { module = "org.jetbrains.compose.material:material", version.ref = "compose-multiplatform" }
-composeMpUi = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
-composeMpUiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose-multiplatform" }
+androidx-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 composeMpComponentsResources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-multiplatform" }
 composeMpComponentsUiToolingPreview = { module = "org.jetbrains.compose.components:components-ui-tooling-preview", version.ref = "compose-multiplatform" }
+composeMpFoundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-multiplatform" }
+composeMpMaterial = { module = "org.jetbrains.compose.material:material", version.ref = "compose-multiplatform" }
+composeMpRuntime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
+composeMpUi = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
+composeMpUiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose-multiplatform" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+ksoup = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
-composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+versions-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "plugin-versionsUpdate" }
