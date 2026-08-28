@@ -3,20 +3,22 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
-        android {
-            namespace = "org.nkiesel.shared"
-            compileSdk = 36
-            @OptIn(ExperimentalKotlinGradlePluginApi::class)
-            compilerOptions {
-                jvmTarget.set(JvmTarget.JVM_17)
-            }
+    android {
+        namespace = "org.nkiesel.shared"
+        compileSdk = libs.versions.androidCompileSdk.get().toInt()
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
+        withHostTest {}
+    }
 
     listOf(
         iosArm64(),
@@ -40,8 +42,12 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinxSerializationJson)
             implementation(libs.ktor.client.core)
             implementation(libs.ksoup)
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)

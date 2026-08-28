@@ -4,7 +4,9 @@ import com.fleeksoft.ksoup.Ksoup
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class JibesetBoat(
     val name: String,
     val sailNumber: String,

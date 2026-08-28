@@ -25,6 +25,8 @@ import org.nkiesel.model.RaceComparisonData
 import org.nkiesel.model.RaceTime
 import org.nkiesel.service.JibesetService
 import org.nkiesel.service.JibesetBoat
+import org.nkiesel.storage.RaceDataRepository
+import org.nkiesel.storage.rememberKeyValueStorage
 import org.nkiesel.test.testElapsedTimeCalculation
 import kotlinx.coroutines.launch
 
@@ -35,13 +37,26 @@ fun App() {
     testElapsedTimeCalculation()
 
     MaterialTheme {
-        var raceData by remember { mutableStateOf(RaceComparisonData()) }
+        val storage = rememberKeyValueStorage()
+        val repository = remember(storage) { RaceDataRepository(storage) }
+
+        var raceData by remember { mutableStateOf(repository.loadRaceData() ?: RaceComparisonData()) }
         var isFrozen by remember { mutableStateOf(false) }
         var showUnfreezeDialog by remember { mutableStateOf(false) }
         
         val jibesetService = remember { JibesetService() }
-        var allBoats by remember { mutableStateOf(emptyList<JibesetBoat>()) }
+        var allBoats by remember { mutableStateOf(repository.loadBoats()) }
         val scope = rememberCoroutineScope()
+
+        LaunchedEffect(raceData) {
+            repository.saveRaceData(raceData)
+        }
+
+        LaunchedEffect(allBoats) {
+            if (allBoats.isNotEmpty()) {
+                repository.saveBoats(allBoats)
+            }
+        }
 
         if (showUnfreezeDialog) {
             AlertDialog(
@@ -92,9 +107,14 @@ fun App() {
                 allBoats = allBoats,
                 onLoadBoats = { url ->
                     scope.launch {
-                        allBoats = jibesetService.fetchBoats(url)
+                        val fetchedBoats = jibesetService.fetchBoats(url)
+                        if (fetchedBoats.isNotEmpty()) {
+                            allBoats = fetchedBoats
+                            repository.saveBoats(fetchedBoats)
+                        }
+                        val currentBoats = if (fetchedBoats.isNotEmpty()) fetchedBoats else allBoats
                         // Auto-detect my boat if possible
-                        val myBoat = allBoats.find { it.name.equals(raceData.myBoatNameProfile, ignoreCase = true) }
+                        val myBoat = currentBoats.find { it.name.equals(raceData.myBoatNameProfile, ignoreCase = true) }
                         if (myBoat != null) {
                             raceData = raceData.copy(
                                 boat1 = raceData.boat1.copy(name = myBoat.name, rating = myBoat.rating)
@@ -205,8 +225,8 @@ fun JibesetSection(
     onLoadBoats: (String) -> Unit,
     isFrozen: Boolean
 ) {
-    var url by remember { mutableStateOf(raceData.jibesetUrl) }
-    var myBoatName by remember { mutableStateOf(raceData.myBoatNameProfile) }
+    var url by remember(raceData.jibesetUrl) { mutableStateOf(raceData.jibesetUrl) }
+    var myBoatName by remember(raceData.myBoatNameProfile) { mutableStateOf(raceData.myBoatNameProfile) }
     var expandedMyBoat by remember { mutableStateOf(false) }
     var expandedCompetitor by remember { mutableStateOf(false) }
 

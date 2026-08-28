@@ -11,6 +11,7 @@ androidx-lifecycle = "2.11.0"
 compose-multiplatform = "1.11.1"
 kotlin = "2.4.10"
 kotlinx-datetime = "0.8.0-0.6.x-compat"
+kotlinxSerialization = "1.8.0"
 ksoup = "0.2.6"
 ktor = "3.5.2"
 plugin-versionsUpdate = "1.1.1"
@@ -27,6 +28,7 @@ composeMpRuntime = { module = "org.jetbrains.compose.runtime:runtime", version.r
 composeMpUi = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
 composeMpUiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose-multiplatform" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 ksoup = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
@@ -38,4 +40,5 @@ androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.lib
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 versions-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "plugin-versionsUpdate" }

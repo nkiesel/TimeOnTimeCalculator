@@ -1,6 +1,7 @@
 package org.nkiesel.model
 
 import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -8,6 +9,7 @@ import kotlin.math.roundToInt
  * Represents time in hours, minutes, and seconds
  */
 @Immutable
+@Serializable
 data class RaceTime(
     val hours: Int,
     val minutes: Int,
@@ -44,6 +46,7 @@ data class RaceTime(
  * Represents a sailboat with its race data
  */
 @Immutable
+@Serializable
 data class BoatData(
     val name: String = "",
     val startTime: RaceTime = RaceTime(10, 0),
@@ -102,6 +105,7 @@ private fun timeFormatted(seconds: Int): String {
  * Represents race data for two boats
  */
 @Immutable
+@Serializable
 data class RaceComparisonData(
     val boat1: BoatData = BoatData(name = "My Boat", rating = -39),
     val boat2: BoatData = BoatData(name = "Competitor", rating = 39),
